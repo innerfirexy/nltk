@@ -153,9 +153,10 @@ class NgramModel(ModelI):
                 self._backoff_alphas[ctxt] = alpha_ctxt
 
     def _words_following(self, context, cond_freq_dist):
-        for ctxt, word in cond_freq_dist.iterkeys():
+        for ctxt, fd in cond_freq_dist.iteritems():
             if ctxt == context:
-                yield word
+                for word in fd.keys():
+                    yield word
 
     def prob(self, word, context):
         """
@@ -168,7 +169,7 @@ class NgramModel(ModelI):
         """
         context = tuple(context)
         if (context + (word,) in self._ngrams) or (self.is_unigram_model):
-            return self._probdist.prob((context, word))
+            return self._model[context].prob(word)
         else:
             return self._alpha(context) * self._backoff.prob(word, context[1:])
 
@@ -204,7 +205,7 @@ class NgramModel(ModelI):
 
     @property
     def probdist(self):
-        return self._probdist
+        return self._model
 
     def choose_random_word(self, context):
         '''
